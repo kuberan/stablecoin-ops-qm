@@ -14,7 +14,7 @@ This is a single-organization local simulation, not federated institutional auth
 
 Records are fictional fixtures in `src/payment-cases/demo.ts`. This is evidence analysis with controlled publication, not a general-purpose disclosure filter. Do not seed real financial/customer data. No transfers, contract determinations, or ledger changes are performed.
 
-Case state, queued task identifiers, and published evidence live in Postgres through QM's durable-map store. Stable turn idempotency keys cover retry after a queue/save interruption. The browser advances the case with authenticated requests; keep the page open while demonstrating it. Returning to the page resumes unfinished work. Each case is limited to six model turns, each with a two-minute deadline. A fresh investigation archives the preceding case and uses new agent identities.
+Case state, queued task identifiers, and published evidence live in Postgres through QM's durable-map store. Stable turn idempotency keys cover retry after a queue/save interruption. The browser advances the case with authenticated requests; keep the page open while demonstrating it. Returning to the page resumes unfinished work. Each case is limited to six tasks, each with a two-minute turn deadline and at most two explicit retries for invalid model replies. A fresh investigation archives the preceding case and uses new agent identities.
 
 ## Code map
 
@@ -27,7 +27,7 @@ Case state, queued task identifiers, and published evidence live in Postgres thr
 
 ## Validation
 
-A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Nine focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
+A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Ten focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
 
 The existing OpenRouter dev-launcher adjustment is also local source work. No GitHub fork or remote submission has been created yet.
 

@@ -170,3 +170,22 @@ test("retry reprocesses a corrected result without requeuing or duplicating find
   await f.service.advance("alice", false, "retry");
   assert.equal((await f.service.get("alice"))!.events.length, 2);
 });
+
+test("invalid model replies can be regenerated twice with distinct keys and preserved failed runs", async () => {
+  const f = fixture();
+  await f.service.advance("alice", true);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    f.results.set(String(attempt), { status: "done", result: { status: "ok", reply: "bad" } });
+    const failed = await f.service.advance("alice", false);
+    assert.equal(failed!.status, "needs_attention");
+    await f.service.advance("alice", false, "retry");
+    await f.service.advance("alice", false);
+  }
+  const c = (await f.store.get("PAY-1042:alice"))!;
+  assert.equal(c.status, "needs_attention");
+  assert.equal(c.events.length, 0);
+  assert.equal(c.jobs[0]!.rejectedRuns!.length, 2);
+  assert.equal(f.turns.length, 3);
+  assert.equal(new Set(f.turns.map((t) => t.idempotencyKey)).size, 3);
+  assert.match(f.turns[1]!.text, /previous response was rejected/);
+});
