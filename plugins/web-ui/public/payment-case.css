@@ -359,3 +359,10 @@ summary:focus-visible {
     letter-spacing: -1px;
   }
 }
+
+#stage {
+  margin: 0 0 22px;
+}
+.event-top {
+  flex-wrap: wrap;
+}

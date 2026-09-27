@@ -23,6 +23,14 @@ function render(c) {
     : needsAttention
       ? "Retry pending step ↗"
       : "Run a fresh investigation ↗";
+  el("stage").textContent =
+    {
+      discovery: "1 · Reconcile records",
+      pricing: "2 · Receiver checks PA-218",
+      challenge: "3 · Sender challenges the deduction",
+      recommendation: "4 · Prepare human recommendation",
+      review: "Review evidence and proposed next steps",
+    }[c.stage] || "Reconcile records";
   el("status").textContent = {
     investigating: "Agents investigating",
     review: "Ready for human review",
@@ -62,16 +70,31 @@ function render(c) {
     timeline.append(
       node(
         "div",
-        "Discrepancy established from published records. The adjustment references PA-218; responsibility for the charge remains unresolved and requires human review.",
+        c.version === 2
+          ? "Pricing review and Sender challenge are complete. The recommendation below is advisory; any correction or separate billing requires human approval."
+          : "Discrepancy established from published records. Run a fresh investigation to add PA-218 pricing review and a Sender challenge.",
         "review",
       ),
     );
-  for (const e of c.events) {
+  const ordered = [
+    ...c.events.filter((e) => e.stage === "recommendation"),
+    ...c.events.filter((e) => e.stage !== "recommendation"),
+  ];
+  for (const e of ordered) {
     const card = node("article", undefined, "event" + (e.kind === "request" ? " request" : ""));
     const top = node("div", undefined, "event-top");
     top.append(
       node("strong", labels[e.institution]),
-      node("span", e.kind === "request" ? "→ " + labels[e.to] : "Finding"),
+      node(
+        "span",
+        e.kind === "request"
+          ? "→ " + labels[e.to]
+          : {
+              pricing: "Pricing assessment",
+              challenge: "Sender challenge",
+              recommendation: "Recommendation · human approval required",
+            }[e.stage] || "Finding",
+      ),
       node("time", new Date(e.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })),
     );
     card.append(top, node("p", e.text));

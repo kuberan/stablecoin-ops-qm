@@ -2,11 +2,11 @@
 
 QM Web is the primary demo. Slack remains an optional connected surface. Build and test locally; do not publish or push until the user asks. Never commit credentials, private workspace identifiers, local runtime state, or screenshots.
 
-## Implemented first milestone
+## Implemented investigation and pricing review
 
 Open `/payment-cases` in the QM web surface. Start an investigation. Separate QM sessions represent Sender PSP and Receiver PSP. Each has a distinct, case-run-specific principal and personal scope. The case broker supplies only that institution's fictional records plus previously published evidence. Model-generated information requests queue subsequent QM turns. Findings cite predefined evidence IDs, which are checked against that institution’s own records and evidence already published to the case. Numeric reconciliation is calculated from the published records, not copied from model prose.
 
-PAY-1042: Acme Manufacturing instructs 500,000 USDC for INV-8821, charges OUR, no FX. Sender settlement is finalized. Receiver has 500,000 received, 487,000 credited, and a 13,000 adjustment referencing PA-218. Adjustment applicability is unresolved; the workflow ends at human review.
+PAY-1042: Acme Manufacturing instructs 500,000 USDC for INV-8821, charges OUR, no FX. Sender settlement is finalized. Receiver has 500,000 received, 487,000 credited, and a 13,000 adjustment referencing PA-218. After discrepancy discovery, Receiver reviews fictional PA-218 terms: 260 basis points explains 13,000 USDC, but OUR charges must be billed separately absent a jointly approved payment-specific exception. A supplied packet search found no approval; it is explicitly non-exhaustive. Sender then challenges the deduction using its instruction and the published terms. Receiver produces an evidence-cited recommendation for human review. These three stages are required workflow steps; the agents generate the assessments, not the coordinator.
 
 ## Boundaries
 
@@ -14,7 +14,7 @@ This is a single-organization local simulation, not federated institutional auth
 
 Records are fictional fixtures in `src/payment-cases/demo.ts`. This is evidence analysis with controlled publication, not a general-purpose disclosure filter. Do not seed real financial/customer data. No transfers, contract determinations, or ledger changes are performed.
 
-Case state, queued task identifiers, and published evidence live in Postgres through QM's durable-map store. Stable turn idempotency keys cover retry after a queue/save interruption. The browser advances the case with authenticated requests; keep the page open while demonstrating it. Returning to the page resumes unfinished work. Each case is limited to six tasks, each with a two-minute turn deadline and at most two explicit retries for invalid model replies. A fresh investigation archives the preceding case and uses new agent identities.
+Case state, queued task identifiers, and published evidence live in Postgres through QM's durable-map store. Stable turn idempotency keys cover retry after a queue/save interruption. The browser advances the case with authenticated requests; keep the page open while demonstrating it. Returning to the page resumes unfinished work. Each new case is limited to six discovery tasks plus three review stages, each with a two-minute turn deadline and at most two explicit retries for invalid model replies. A fresh investigation archives the preceding case and uses new agent identities.
 
 ## Code map
 
@@ -27,10 +27,10 @@ Case state, queued task identifiers, and published evidence live in Postgres thr
 
 ## Validation
 
-A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Ten focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
+A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Thirteen focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
 
 The existing OpenRouter dev-launcher adjustment is also local source work. No GitHub fork or remote submission has been created yet.
 
 ## Later work
 
-Pricing agreement retrieval, compliance/entity investigation, stronger disclosure rules, GBrain, regulator RFI, production cross-organization trust, and deployment are not implemented. Keep the first demo focused on evidence-backed discrepancy discovery.
+Real agreement retrieval, compliance/entity investigation, stronger disclosure rules, GBrain, regulator RFI, production cross-organization trust, and deployment are not implemented. The current agreement is a fictional fixture, not a fetched contract. Model prose is advisory: citation availability and stage completion are checked, but semantic correctness is not guaranteed. Previously completed cases remain unchanged; replay starts the expanded workflow.

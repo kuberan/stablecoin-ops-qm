@@ -65,6 +65,9 @@ test("requests drive real turn queue; restart and repeated polling preserve evid
   assert.equal(f.turns.length, 1);
   f.results.set("1", { status: "done", result: { status: "ok", reply: sender, sessionId: "s" } });
   await f.service.advance("alice", false);
+  const legacy = (await f.store.get("PAY-1042:alice"))!;
+  delete legacy.version;
+  await f.store.put("PAY-1042:alice", legacy);
   const restored = createPaymentCaseService(f.deps);
   await restored.advance("alice", false);
   assert.equal(f.turns.length, 2);
@@ -188,4 +191,80 @@ test("invalid model replies can be regenerated twice with distinct keys and pres
   assert.equal(f.turns.length, 3);
   assert.equal(new Set(f.turns.map((t) => t.idempotencyKey)).size, 3);
   assert.match(f.turns[1]!.text, /previous response was rejected/);
+});
+
+test("pricing review follows discovery, publishes terms before Sender challenge, and requires cited recommendation", async () => {
+  const f = fixture();
+  await f.service.advance("alice", true);
+  f.results.set("1", { status: "done", result: { status: "ok", reply: sender } });
+  await f.service.advance("alice", false);
+  await f.service.advance("alice", false);
+  assert.ok(!f.turns[1]!.text.includes("260 basis points"));
+  f.results.set("2", { status: "done", result: { status: "ok", reply: receiver } });
+  await f.service.advance("alice", false);
+  await f.service.advance("alice", false);
+  const restored = createPaymentCaseService(f.deps);
+  const reply = (ids: string[]) =>
+    JSON.stringify({
+      findings: [{ text: "Evidence-backed assessment for human review", evidenceIds: ids }],
+      requests: [],
+    });
+  for (const [index, stage, ids] of [
+    [3, "pricing", ["R-PA218", "R-APPROVAL", "R-CREDIT"]],
+    [4, "challenge", ["S-INSTRUCTION", "R-PA218", "R-APPROVAL"]],
+    [5, "recommendation", ["S-INSTRUCTION", "R-PA218", "R-APPROVAL", "R-CREDIT"]],
+  ] as const) {
+    await restored.advance("alice", false);
+    assert.equal((await restored.get("alice"))!.stage, stage);
+    if (stage === "pricing") assert.match(f.turns[index - 1]!.text, /260 basis points/);
+    if (stage === "challenge") assert.match(f.turns[index - 1]!.text, /fictional pricing agreement excerpt/);
+    if (stage === "recommendation") {
+      f.results.set(String(index), { status: "done", result: { status: "ok", reply: receiver } });
+      const rejected = await restored.advance("alice", false);
+      assert.equal(rejected!.status, "needs_attention");
+      assert.ok(!rejected!.events.some((e) => e.stage === "recommendation"));
+    }
+    f.results.set(String(index), { status: "done", result: { status: "ok", reply: reply([...ids]) } });
+    await restored.advance("alice", false, "retry");
+    await restored.advance("alice", false);
+  }
+  const result = (await restored.get("alice"))!;
+  assert.equal(result.status, "review");
+  assert.equal(result.reconciliation.difference, 13000);
+  assert.deepEqual(
+    result.events.filter((e) => e.stage && e.stage !== "discovery").map((e) => e.stage),
+    ["pricing", "challenge", "recommendation"],
+  );
+  assert.equal(
+    result.events.find((e) => e.stage === "challenge")!.evidence.find((e) => e.id === "R-PA218")!.institution,
+    "receiver",
+  );
+  await restored.advance("alice", false);
+  assert.equal(f.turns.length, 5);
+});
+
+test("Sender cannot cite unpublished pricing terms and new cases do not expose them in discovery", async () => {
+  const f = fixture();
+  await f.service.advance("alice", true);
+  const c = (await f.store.get("PAY-1042:alice"))!;
+  assert.ok(
+    !caseTurn(c, {
+      id: "r",
+      institution: "receiver",
+      status: "pending",
+      stage: "discovery",
+      question: "Verify",
+    }).text.includes("260 basis points"),
+  );
+  assert.throws(() =>
+    parseCaseReply(JSON.stringify({ findings: [{ text: "Terms", evidenceIds: ["R-PA218"] }], requests: [] }), "sender"),
+  );
+  assert.ok(!(await f.service.get("alice"))!.events.some((e) => e.evidence.some((r) => r.id === "R-PA218")));
+});
+
+test("a review finding can cite all six available records", () => {
+  const shared = evidenceFor("sender");
+  const ids = [...shared, ...evidenceFor("receiver")].map((e) => e.id);
+  const reply = JSON.stringify({ findings: [{ text: "Combined assessment", evidenceIds: ids }], requests: [] });
+  assert.equal(parseCaseReply(reply, "receiver", shared).findings[0]!.evidenceIds.length, 6);
 });

@@ -24,10 +24,11 @@
       <section class="intro">
         <p>
           Sender reports a successful payment. The supplier reports a shortfall. Ask two institutional agents to
-          reconcile their records and share the evidence.
+          reconcile their records, check PA-218 pricing terms, and challenge the deduction before human review.
         </p>
         <button id="start">Investigate PAY-1042 <span>↗</span></button>
       </section>
+      <p id="stage" class="subtitle">1 · Reconcile records → 2 · Check pricing → 3 · Challenge → 4 · Recommend</p>
       <div id="error" role="alert" hidden></div>
       <section class="metrics" aria-label="Published reconciliation">
         <article>
@@ -71,7 +72,7 @@
             <div class="avatar receiver">R</div>
             <div>
               <strong>Receiver PSP</strong>
-              <p>Receipt & beneficiary ledger</p>
+              <p>Receipt, credit & pricing agreement</p>
               <small id="receiver-state">Not started</small>
             </div>
           </div>
