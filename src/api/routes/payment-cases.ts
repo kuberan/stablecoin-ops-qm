@@ -27,12 +27,13 @@ async function paymentCase(ctx: ApiCtx): Promise<void> {
     run: (id) => ctx.deps.runs!.get(id),
   });
   const action = ctx.params.action;
-  if (ctx.method === "POST" && action !== "start" && action !== "advance" && action !== "replay")
+  if (ctx.method === "POST" && action !== "start" && action !== "advance" && action !== "replay" && action !== "retry")
     return sendJson(ctx.res, 404, { error: "Not found" });
+  const mode = action === "replay" || action === "retry" ? action : "continue";
   const result =
     ctx.method === "GET"
       ? await service.get(ctx.actor.p)
-      : await service.advance(ctx.actor.p, action === "start" || action === "replay", action === "replay");
+      : await service.advance(ctx.actor.p, action === "start" || action === "replay", mode);
   sendJson(ctx.res, 200, { case: result });
 }
 export const paymentCaseRoutes: ReadonlyArray<Route<ApiCtx>> = [

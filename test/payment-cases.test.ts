@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { createMemoryMap } from "../src/persistence/durable-map.ts";
 import { createMemoryAdvisoryLock } from "../src/persistence/advisory-lock.ts";
 import {
+  evidenceFor,
   casePrincipal,
   caseTurn,
   createPaymentCaseService,
@@ -81,7 +82,7 @@ test("requests drive real turn queue; restart and repeated polling preserve evid
 });
 
 test("citations cannot cross institution boundary or invent evidence", () => {
-  assert.throws(() => parseCaseReply(receiver, "sender"), /outside its institution/);
+  assert.throws(() => parseCaseReply(receiver, "sender"), /not available to its institution/);
   assert.throws(() =>
     parseCaseReply(JSON.stringify({ findings: [{ text: "x", evidenceIds: ["FAKE"] }], requests: [] }), "receiver"),
   );
@@ -116,12 +117,12 @@ test("replay archives the old case and creates fresh institution identities", as
   const old = (await f.store.get("PAY-1042:alice"))!;
   old.status = "review";
   await f.store.put("PAY-1042:alice", old);
-  await f.service.advance("alice", true, true);
+  await f.service.advance("alice", true, "replay");
   const next = (await f.store.get("PAY-1042:alice"))!;
   assert.notEqual(next.generation, old.generation);
   assert.notEqual(casePrincipal(next, "sender"), casePrincipal(old, "sender"));
   assert.equal((await f.store.get(`PAY-1042:alice:history:${old.generation}`))!.status, "review");
-  await f.service.advance("alice", true, true);
+  await f.service.advance("alice", true, "replay");
   assert.equal((await f.store.get("PAY-1042:alice"))!.generation, next.generation);
 });
 
@@ -137,4 +138,35 @@ test("case API refuses agent capabilities and unsigned human requests", async ()
   >[0]);
   await route.handle({ ...base, actor: { p: "payment-demo-agent" } } as unknown as Parameters<typeof route.handle>[0]);
   assert.deepEqual(responses, [403, 403, 403]);
+});
+
+test("agents may cite published evidence while unpublished peer evidence stays inaccessible", () => {
+  const text = JSON.stringify({
+    findings: [{ text: "Reconciled published receipt", evidenceIds: ["S-SETTLEMENT", "R-RECEIPT"] }],
+    requests: [],
+  });
+  assert.throws(() => parseCaseReply(text, "receiver"));
+  const shared = evidenceFor("sender").filter((e) => e.id === "S-SETTLEMENT");
+  assert.equal(parseCaseReply(text, "receiver", shared).findings.length, 1);
+  assert.throws(() =>
+    parseCaseReply(
+      JSON.stringify({ findings: [{ text: "Private", evidenceIds: ["S-INSTRUCTION"] }], requests: [] }),
+      "receiver",
+      shared,
+    ),
+  );
+});
+
+test("retry reprocesses a corrected result without requeuing or duplicating findings", async () => {
+  const f = fixture();
+  await f.service.advance("alice", true);
+  f.results.set("1", { status: "done", result: { status: "ok", reply: "bad" } });
+  await f.service.advance("alice", false);
+  f.results.set("1", { status: "done", result: { status: "ok", reply: sender } });
+  const recovered = await f.service.advance("alice", false, "retry");
+  assert.equal(recovered!.status, "investigating");
+  assert.equal(recovered!.events.length, 2);
+  assert.equal(f.turns.length, 1);
+  await f.service.advance("alice", false, "retry");
+  assert.equal((await f.service.get("alice"))!.events.length, 2);
 });

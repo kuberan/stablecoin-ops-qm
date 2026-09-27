@@ -4,7 +4,7 @@ QM Web is the primary demo. Slack remains an optional connected surface. Build a
 
 ## Implemented first milestone
 
-Open `/payment-cases` in the QM web surface. Start an investigation. Separate QM sessions represent Sender PSP and Receiver PSP. Each has a distinct, case-run-specific principal and personal scope. The case broker supplies only that institution's fictional records plus previously published evidence. Model-generated information requests queue subsequent QM turns. Findings cite predefined evidence IDs, which are checked against the publishing institution. Numeric reconciliation is calculated from the published records, not copied from model prose.
+Open `/payment-cases` in the QM web surface. Start an investigation. Separate QM sessions represent Sender PSP and Receiver PSP. Each has a distinct, case-run-specific principal and personal scope. The case broker supplies only that institution's fictional records plus previously published evidence. Model-generated information requests queue subsequent QM turns. Findings cite predefined evidence IDs, which are checked against that institution’s own records and evidence already published to the case. Numeric reconciliation is calculated from the published records, not copied from model prose.
 
 PAY-1042: Acme Manufacturing instructs 500,000 USDC for INV-8821, charges OUR, no FX. Sender settlement is finalized. Receiver has 500,000 received, 487,000 credited, and a 13,000 adjustment referencing PA-218. Adjustment applicability is unresolved; the workflow ends at human review.
 
@@ -27,7 +27,7 @@ Case state, queued task identifiers, and published evidence live in Postgres thr
 
 ## Validation
 
-A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Seven focused tests pass. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
+A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Nine focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
 
 The existing OpenRouter dev-launcher adjustment is also local source work. No GitHub fork or remote submission has been created yet.
 

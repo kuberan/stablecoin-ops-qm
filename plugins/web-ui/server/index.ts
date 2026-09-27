@@ -1097,7 +1097,12 @@ const apiRoutes: readonly WebRoute[] = [
     method: "POST",
     path: "/api/payment-demo/:action",
     handle: async ({ res, params }) => {
-      if (params.action !== "start" && params.action !== "advance" && params.action !== "replay")
+      if (
+        params.action !== "start" &&
+        params.action !== "advance" &&
+        params.action !== "replay" &&
+        params.action !== "retry"
+      )
         return json(res, 404, { error: "Not found" });
       return relayCore(res, "POST", `/v1/payment-demo/${params.action}`, "{}");
     },

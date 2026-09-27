@@ -3,6 +3,7 @@ const labels = { sender: "Sender PSP", receiver: "Receiver PSP" };
 let busy = false;
 let active = false;
 let saved = false;
+let needsAttention = false;
 let timer;
 let timelineKey = "";
 function node(tag, text, className) {
@@ -15,8 +16,13 @@ function render(c) {
   if (!c) return;
   active = c.status === "investigating";
   saved = true;
+  needsAttention = c.status === "needs_attention";
   el("start").disabled = active;
-  el("start").textContent = active ? "Investigation in progress…" : "Run a fresh investigation ↗";
+  el("start").textContent = active
+    ? "Investigation in progress…"
+    : needsAttention
+      ? "Retry pending step ↗"
+      : "Run a fresh investigation ↗";
   el("status").textContent = {
     investigating: "Agents investigating",
     review: "Ready for human review",
@@ -31,13 +37,16 @@ function render(c) {
     ? "Adjustment " + c.reconciliation.adjustmentReference
     : "Awaiting evidence";
   for (const a of c.agents)
-    el(a.institution + "-state").textContent = a.jobs.some((j) => j.status === "running")
-      ? "Investigating"
-      : a.jobs.some((j) => j.status === "pending")
-        ? "Request received"
-        : a.jobs.length
-          ? "Findings published"
-          : "Awaiting request";
+    el(a.institution + "-state").textContent =
+      needsAttention && a.jobs.some((j) => j.status === "running")
+        ? "Needs attention"
+        : a.jobs.some((j) => j.status === "running")
+          ? "Investigating"
+          : a.jobs.some((j) => j.status === "pending")
+            ? "Request received"
+            : a.jobs.length
+              ? "Findings published"
+              : "Awaiting request";
   const nextKey = c.createdAt + ":" + c.status + ":" + c.events.map((e) => e.id).join(",");
   if (nextKey === timelineKey) return;
   timelineKey = nextKey;
@@ -99,5 +108,5 @@ async function request(action) {
     if (active) timer = setTimeout(() => request("advance"), 2500);
   }
 }
-el("start").addEventListener("click", () => request(saved ? "replay" : "start"));
+el("start").addEventListener("click", () => request(needsAttention ? "retry" : saved ? "replay" : "start"));
 request();
