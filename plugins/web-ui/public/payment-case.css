@@ -366,3 +366,84 @@ summary:focus-visible {
 .event-top {
   flex-wrap: wrap;
 }
+
+[hidden] {
+  display: none !important;
+}
+.intake,
+.agent-card {
+  background: white;
+  border: 1px solid #dce3d8;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.intake h2,
+.agent-card h2 {
+  font-size: 19px;
+}
+.intake p,
+.agent-card p {
+  font-size: 13px;
+  color: #627068;
+}
+.report-fields,
+.agent-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.intake label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.intake input,
+.intake textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  margin-top: 7px;
+  border: 1px solid #becbbf;
+  border-radius: 6px;
+  font: inherit;
+  background: #fafbf8;
+}
+.intake textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.agent-card strong {
+  display: block;
+  color: #214d3b;
+}
+.agent-card small {
+  overflow-wrap: anywhere;
+  display: block;
+  margin: 8px 0;
+}
+.agent-card details {
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+.secondary,
+.activity-filters button,
+.agent-card button {
+  background: #e5ece3;
+  color: #214d3b;
+}
+.activity-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+#report-error {
+  color: #903d29;
+}
+@media (max-width: 600px) {
+  .report-fields,
+  .agent-overview {
+    grid-template-columns: 1fr;
+  }
+}

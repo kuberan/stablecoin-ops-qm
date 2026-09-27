@@ -101,3 +101,35 @@ test("a successfully queued send still resolves with its run", async () => {
   const queued = await queueTurn("web:u:t", "hello", fakeAgent(), undefined, "key-1");
   assert.deepEqual(queued, { runId: "r-9", text: "hello" });
 });
+
+test("payment chat streams both agents through case polling without inventing a model run", async () => {
+  const requests: string[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    requests.push(url);
+    assert.equal(init?.method, "POST");
+    const initial = url === "/api/turn";
+    if (!initial) {
+      assert.equal(url, "/api/payment-demo/chat");
+      const body = JSON.parse(String(init?.body));
+      assert.equal(body.threadRef, "web:u:t");
+      assert.equal(body.action, "advance");
+      assert.equal(body.sendKey, "web:u:stable-send");
+    }
+    return new Response(
+      JSON.stringify({
+        paymentCase: true,
+        paymentSendKey: "web:u:stable-send",
+        caseStatus: initial ? "investigating" : "review",
+        reply: initial
+          ? "Sender PSP agent: sent 500,000."
+          : "Sender PSP agent: sent 500,000.\nReceiver PSP agent: credited 487,000.",
+      }),
+      { status: 200 },
+    );
+  }) as typeof fetch;
+  const outcome = await driveOutcome();
+  assert.equal(outcome.stopReason, "stop");
+  assert.equal(outcome.content[0]?.text, "Sender PSP agent: sent 500,000.\nReceiver PSP agent: credited 487,000.");
+  assert.deepEqual(requests, ["/api/turn", "/api/payment-demo/chat"]);
+});

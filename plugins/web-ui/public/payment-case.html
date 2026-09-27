@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>PAY-1042 · QM Payment Ops</title>
+    <title>PAY-1042 · QM Payment Debug</title>
     <link rel="stylesheet" href="/payment-case.css" />
     <script type="module" src="/payment-case.js"></script>
   </head>
@@ -13,7 +13,7 @@
       ><span class="demo">FICTIONAL DEMO</span>
     </header>
     <main>
-      <div class="eyebrow">PAYMENT CASE / 001</div>
+      <div class="eyebrow">PAYMENT INVESTIGATION / DEBUG</div>
       <div class="heading">
         <div>
           <h1>Where did the $13,000 go?</h1>
@@ -23,11 +23,74 @@
       </div>
       <section class="intro">
         <p>
-          Sender reports a successful payment. The supplier reports a shortfall. Ask two institutional agents to
-          reconcile their records, check PA-218 pricing terms, and challenge the deduction before human review.
+          Inspect agent activity, source evidence and run details here. Start the main demo in
+          <a href="/">QM chat</a> by reporting the 500,000 / 487,000 USDC shortfall. The controls below are for testing
+          the same fictional investigation.
         </p>
-        <button id="start">Investigate PAY-1042 <span>↗</span></button>
+        <button id="start">Report a payment issue ↗</button>
       </section>
+      <section id="intake" class="intake" hidden>
+        <h2>Report a payment issue</h2>
+        <p>
+          Demo scenario: PAY-1042. These amounts are checked against fictional records; other payments are not
+          connected.
+        </p>
+        <form id="report-form">
+          <div class="report-fields">
+            <label>Payment reference<input id="report-id" value="PAY-1042" required readonly /></label>
+            <label>Currency<input id="report-currency" value="USDC" required readonly /></label>
+            <label
+              >Amount sent<input id="report-sent" type="number" value="500000" min="0" step="0.01" required
+            /></label>
+            <label
+              >Beneficiary amount credited<input
+                id="report-credited"
+                type="number"
+                value="487000"
+                min="0"
+                step="0.01"
+                required
+            /></label>
+          </div>
+          <label
+            >Describe the issue<textarea id="report-description" maxlength="600" required>
+We sent 500,000 USDC, but the beneficiary reports receiving only 487,000. Please investigate the shortfall.</textarea>
+          </label>
+          <p>The report is an unverified claim. Both agents will check their own evidence.</p>
+          <button id="submit-report" type="submit">Submit report & investigate ↗</button>
+          <button id="cancel-report" type="button" class="secondary">Cancel</button>
+          <p id="report-error" role="alert" hidden></p>
+        </form>
+      </section>
+      <section id="reported" class="review" hidden aria-label="Reported issue"></section>
+      <section class="agent-overview" aria-label="Two institutional agents">
+        <article class="agent-card">
+          <h2>01 · Sender PSP agent</h2>
+          <p>Checks instruction and settlement. Challenges the deduction.</p>
+          <strong id="sender-live">Awaiting report</strong>
+          <p id="sender-count">No runs yet</p>
+          <details>
+            <summary>QM session identity</summary>
+            <small id="sender-session">Created when the agent starts</small>
+          </details>
+          <button type="button" data-filter="sender">Show Sender activity</button>
+        </article>
+        <article class="agent-card">
+          <h2>02 · Receiver PSP agent</h2>
+          <p>Checks receipt, beneficiary credit and pricing terms.</p>
+          <strong id="receiver-live">Awaiting request</strong>
+          <p id="receiver-count">No runs yet</p>
+          <details>
+            <summary>QM session identity</summary>
+            <small id="receiver-session">Created when the agent starts</small>
+          </details>
+          <button type="button" data-filter="receiver">Show Receiver activity</button>
+        </article>
+      </section>
+      <p class="subtitle">
+        Two AI agents, separate QM sessions. The case coordinator routes their work; it is not a third agent. Tasks run
+        in sequence.
+      </p>
       <p id="stage" class="subtitle">1 · Reconcile records → 2 · Check pricing → 3 · Challenge → 4 · Recommend</p>
       <div id="error" role="alert" hidden></div>
       <section class="metrics" aria-label="Published reconciliation">
@@ -47,6 +110,10 @@
           <div class="section-title">
             <h2>Case timeline</h2>
             <span>SHARED FINDINGS</span>
+          </div>
+          <div class="activity-filters">
+            <button type="button" data-filter="all">All activity</button
+            ><button type="button" data-filter="requests">Agent-to-agent questions</button>
           </div>
           <div id="timeline" aria-live="polite">
             <div class="empty">

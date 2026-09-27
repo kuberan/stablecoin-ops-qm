@@ -9,14 +9,22 @@ Built for the **Own Your Intelligence Hackathon — QM side quest**. This source
 - Separate institution identities and personal sessions, using QM’s existing access controls.
 - A durable case coordinator that routes agent-generated questions and publishes cited evidence.
 - A required pricing assessment, Sender challenge, and final recommendation workflow.
-- An authenticated Cases screen with source details, run provenance, replay, and bounded recovery of invalid model responses.
-- OpenRouter support in the local development launcher.
+- Native QM chat intake and persisted, attributed Sender/Receiver updates, with an authenticated debug screen for source details, run provenance and recovery.
+- A local development launcher fix for QM’s existing OpenRouter support.
 
 The model generates the dialogue and assessments. The coordinator validates available source IDs, records provenance, enforces review stages, and calculates reconciliation totals from published fixtures.
 
 ## Demo
 
-Open **Cases** in the QM web sidebar, then **Investigate PAY-1042** (or **Run a fresh investigation**). Keep the page open while agents work.
+In a new personal QM chat, send:
+
+> We sent 500,000 USDC but the beneficiary received only 487,000. Please investigate.
+
+Or send `/payment investigate PAY-1042`. The chat starts the investigation and displays labeled Sender and Receiver contributions, their separate session IDs, questions, and published source evidence. The saved report is an unverified claim. The coordinator schedules work sequentially; it is application code, not a third AI agent.
+
+Keep the chat open while it advances. After leaving or refreshing, send `/payment status` in the same conversation to resume. Use `/payment retry` when an agent response needs recovery. Stopping the chat display does not cancel an already queued model run. Starting another report after completion archives the old case and creates fresh institutional identities.
+
+**Debug** in the sidebar opens `/payment-cases`, retained for inspecting agent state, source details, model-run counts, session IDs, activity filters and replay. It is not required for the primary demonstration. The demo supports only the fictional PAY-1042 amounts; it is not connected to real payments.
 
 1. Sender establishes that 500,000 USDC was instructed and transmitted.
 2. Receiver publishes 500,000 received, 487,000 credited, and adjustment PA-218.
@@ -41,16 +49,16 @@ export OPENROUTER_API_KEY
 npm run dev-instance:web
 ```
 
-The development launcher prepares the local services and prints the portal URL. Sign in through that portal and open `/payment-cases`. Model calls consume your provider credits. Slack is optional and is not required for the web demonstration. See the [development instance guide](.codex/skills/dev-instance/SKILL.md) for setup and diagnostics.
+The development launcher prepares the local services and prints the portal URL. Sign in through that portal and open a personal QM chat. Model calls consume your provider credits. Slack is optional and is not required for the web demonstration. See the [development instance guide](.codex/skills/dev-instance/SKILL.md) for setup and diagnostics.
 
 ## Validation and implementation
 
 ```bash
-node --experimental-test-module-mocks --test test/payment-cases.test.ts test/dev-cli-lib.test.ts
+node --experimental-test-module-mocks --test test/payment-cases.test.ts test/payment-chat.test.ts test/dev-cli-lib.test.ts
 npm run typecheck
 ```
 
-The payment-case suite has 13 tests. Live verification covered real OpenRouter/Pi turns, pricing review, challenge, recommendation, persistence, and authenticated transcript access: each institution could read its own session while cross-institution reads were denied. Web production build and changed-code lint also passed.
+The payment-case and chat suites have 16 tests. Live verification covered reporting and completion in native QM chat, refresh/resume, real OpenRouter/Pi turns, pricing review, challenge, recommendation, persistence, and authenticated transcript access: each institution could read its own session while cross-institution reads were denied. Forty-one affected web tests, the web production build and changed-code lint also passed.
 
 Read [HACKATHON.md](HACKATHON.md) for architecture, source-file map, limits, and remaining work. The required demo-video link will be supplied with the hackathon submission separately.
 

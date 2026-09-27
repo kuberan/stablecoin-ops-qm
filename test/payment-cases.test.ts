@@ -268,3 +268,26 @@ test("a review finding can cite all six available records", () => {
   const reply = JSON.stringify({ findings: [{ text: "Combined assessment", evidenceIds: ids }], requests: [] });
   assert.equal(parseCaseReply(reply, "receiver", shared).findings[0]!.evidenceIds.length, 6);
 });
+
+test("reported issue persists, reaches agents as an unverified claim, and duplicate submission cannot restart active work", async () => {
+  const f = fixture();
+  const report = {
+    paymentId: "PAY-1042",
+    currency: "USDC",
+    sent: 500000,
+    credited: 487000,
+    description: "Supplier reports a shortfall. Please investigate.",
+  };
+  const first = await f.service.advance("alice", true, "replay", report);
+  assert.deepEqual(first!.report, report);
+  assert.equal(first!.reconciliation.credited, null);
+  assert.match(f.turns[0]!.text, /unverified user input/);
+  assert.match(f.turns[0]!.text, /Supplier reports a shortfall/);
+  await f.service.advance("alice", true, "replay", report);
+  assert.equal(f.turns.length, 1);
+  assert.deepEqual((await createPaymentCaseService(f.deps).get("alice"))!.report, report);
+  await assert.rejects(f.service.advance("alice", true, "replay", { ...report, sent: 100 }));
+  await assert.rejects(f.service.advance("alice", true, "replay", { ...report, description: " " }));
+  await assert.rejects(f.service.advance("alice", true, "replay", { ...report, paymentId: "PAY-OTHER" }));
+  assert.equal((await f.service.get("alice"))!.createdAt, first!.createdAt);
+});

@@ -1151,7 +1151,15 @@ async function drive(
     }
     if (issues.length) onSendIssues?.(issues, retryable);
 
-    const submit = await api<{ status?: string; runId?: string; reply?: string; reason?: string }>("/api/turn", {
+    const submit = await api<{
+      status?: string;
+      runId?: string;
+      reply?: string;
+      reason?: string;
+      paymentCase?: boolean;
+      paymentSendKey?: string;
+      caseStatus?: string;
+    }>("/api/turn", {
       method: "POST",
       body: JSON.stringify({
         ...turnRequestBody(threadRef, text, model, agent, getTurnOptions, { idempotencyKey, attachments }),
@@ -1159,6 +1167,30 @@ async function drive(
       }),
     });
 
+    if (submit.paymentCase) {
+      let payment = submit;
+      const acc = { acc: "", lastProgressAt: now() };
+      while (true) {
+        if (signal?.aborted) return abortStream(stream, partial, acc.acc);
+        pushDelta(stream, partial, acc, payment.reply ?? "");
+        if (payment.caseStatus !== "investigating") break;
+        await sleep(2500);
+        if (signal?.aborted) return abortStream(stream, partial, acc.acc);
+        payment = await api<typeof submit>("/api/payment-demo/chat", {
+          method: "POST",
+          body: JSON.stringify({
+            threadRef,
+            action: "advance",
+            sendKey: submit.paymentSendKey ?? idempotencyKey ?? "resume",
+          }),
+        });
+      }
+      work.status = "complete";
+      work.finishedAt = Date.now();
+      notify();
+      finish(stream, partial, acc, payment.reply ?? "");
+      return;
+    }
     if (submit.runId) {
       if (!opener) {
         const userMessages = agent.state.messages.filter(

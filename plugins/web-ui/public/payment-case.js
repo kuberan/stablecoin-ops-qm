@@ -2,10 +2,11 @@ const el = (id) => document.getElementById(id);
 const labels = { sender: "Sender PSP", receiver: "Receiver PSP" };
 let busy = false;
 let active = false;
-let saved = false;
 let needsAttention = false;
 let timer;
 let timelineKey = "";
+let currentCase;
+let activityFilter = "all";
 function node(tag, text, className) {
   const n = document.createElement(tag);
   if (text !== undefined) n.textContent = text;
@@ -13,16 +14,19 @@ function node(tag, text, className) {
   return n;
 }
 function render(c) {
-  if (!c) return;
+  if (!c) {
+    el("intake").hidden = false;
+    return;
+  }
+  currentCase = c;
   active = c.status === "investigating";
-  saved = true;
   needsAttention = c.status === "needs_attention";
   el("start").disabled = active;
   el("start").textContent = active
     ? "Investigation in progress…"
     : needsAttention
       ? "Retry pending step ↗"
-      : "Run a fresh investigation ↗";
+      : "Report a new demo issue ↗";
   el("stage").textContent =
     {
       discovery: "1 · Reconcile records",
@@ -36,6 +40,18 @@ function render(c) {
     review: "Ready for human review",
     needs_attention: "Needs attention",
   }[c.status];
+  el("reported").hidden = !c.report;
+  if (c.report)
+    el("reported").textContent =
+      "Reported · " +
+      c.report.paymentId +
+      " · " +
+      new Intl.NumberFormat("en-US").format(c.report.sent) +
+      " USDC sent / " +
+      new Intl.NumberFormat("en-US").format(c.report.credited) +
+      " credited. " +
+      c.report.description +
+      " — Unverified until checked against evidence.";
   el("error").hidden = !c.error;
   el("error").textContent = c.error || "";
   for (const name of ["transmitted", "received", "credited", "difference"])
@@ -55,7 +71,17 @@ function render(c) {
             : a.jobs.length
               ? "Findings published"
               : "Awaiting request";
-  const nextKey = c.createdAt + ":" + c.status + ":" + c.events.map((e) => e.id).join(",");
+  for (const a of c.agents) {
+    el(a.institution + "-live").textContent = el(a.institution + "-state").textContent;
+    const runs = new Set(
+      a.jobs.flatMap((j) => [...(j.runId ? [j.runId] : []), ...(j.rejectedRuns || []).map((r) => r.runId)]),
+    );
+    const findings = c.events.filter((e) => e.institution === a.institution && e.kind === "finding").length;
+    el(a.institution + "-count").textContent = runs.size + " model runs · " + findings + " published findings";
+    el(a.institution + "-session").textContent =
+      [...new Set(a.jobs.map((j) => j.sessionId).filter(Boolean))].join(", ") || "Created when the agent starts";
+  }
+  const nextKey = activityFilter + ":" + c.createdAt + ":" + c.status + ":" + c.events.map((e) => e.id).join(",");
   if (nextKey === timelineKey) return;
   timelineKey = nextKey;
   const timeline = el("timeline");
@@ -80,7 +106,13 @@ function render(c) {
     ...c.events.filter((e) => e.stage === "recommendation"),
     ...c.events.filter((e) => e.stage !== "recommendation"),
   ];
-  for (const e of ordered) {
+  const visible = ordered.filter(
+    (e) =>
+      activityFilter === "all" ||
+      (activityFilter === "requests" ? e.kind === "request" : e.institution === activityFilter),
+  );
+  if (!visible.length) timeline.append(node("p", "No published activity for this view yet.", "empty"));
+  for (const e of visible) {
     const card = node("article", undefined, "event" + (e.kind === "request" ? " request" : ""));
     const top = node("div", undefined, "event-top");
     top.append(
@@ -110,7 +142,7 @@ function render(c) {
     timeline.append(card);
   }
 }
-async function request(action) {
+async function request(action, payload = {}) {
   if (busy) return;
   busy = true;
   clearTimeout(timer);
@@ -118,12 +150,20 @@ async function request(action) {
     const response = await fetch("/api/payment-demo" + (action ? "/" + action : ""), {
       method: action ? "POST" : "GET",
       headers: action ? { "content-type": "application/json" } : {},
-      body: action ? "{}" : undefined,
+      body: action ? JSON.stringify(payload) : undefined,
     });
     const data = await response.json();
     if (!response.ok) throw Error(data.error || "Could not load case");
+    if (action === "report") {
+      el("intake").hidden = true;
+      activityFilter = "all";
+    }
     render(data.case);
   } catch (error) {
+    if (action === "report") {
+      el("report-error").hidden = false;
+      el("report-error").textContent = error.message;
+    }
     el("error").hidden = false;
     el("error").textContent = error.message;
   } finally {
@@ -131,5 +171,31 @@ async function request(action) {
     if (active) timer = setTimeout(() => request("advance"), 2500);
   }
 }
-el("start").addEventListener("click", () => request(needsAttention ? "retry" : saved ? "replay" : "start"));
+el("start").addEventListener("click", () => {
+  if (needsAttention) return request("retry");
+  el("intake").hidden = false;
+  el("report-description").focus();
+});
+el("cancel-report").addEventListener("click", () => {
+  el("intake").hidden = true;
+});
+el("report-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  el("report-error").hidden = true;
+  el("submit-report").disabled = true;
+  await request("report", {
+    paymentId: el("report-id").value,
+    currency: el("report-currency").value,
+    sent: Number(el("report-sent").value),
+    credited: Number(el("report-credited").value),
+    description: el("report-description").value,
+  });
+  el("submit-report").disabled = false;
+});
+for (const button of document.querySelectorAll("[data-filter]"))
+  button.addEventListener("click", () => {
+    activityFilter = button.dataset.filter;
+    if (currentCase) render(currentCase);
+    el("timeline").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 request();

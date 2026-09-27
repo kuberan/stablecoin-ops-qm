@@ -1096,15 +1096,22 @@ const apiRoutes: readonly WebRoute[] = [
   {
     method: "POST",
     path: "/api/payment-demo/:action",
-    handle: async ({ res, params }) => {
+    handle: async ({ res, params, req }) => {
       if (
         params.action !== "start" &&
         params.action !== "advance" &&
         params.action !== "replay" &&
-        params.action !== "retry"
+        params.action !== "retry" &&
+        params.action !== "report" &&
+        params.action !== "chat"
       )
         return json(res, 404, { error: "Not found" });
-      return relayCore(res, "POST", `/v1/payment-demo/${params.action}`, "{}");
+      return relayCore(
+        res,
+        "POST",
+        `/v1/payment-demo/${params.action}`,
+        params.action === "report" || params.action === "chat" ? await readBody(req) : "{}",
+      );
     },
   },
 
@@ -2468,6 +2475,21 @@ const apiRoutes: readonly WebRoute[] = [
       const resolved = resolveWebConversation(user, threadRef, scope, channelName);
       if ("error" in resolved) return json(res, 403, resolved);
 
+      if (
+        !approval &&
+        !attachments.length &&
+        (!scope || scope === `personal:${user}`) &&
+        /PAY-1042|^\/payment\b|500,?000/i.test(text)
+      ) {
+        const payment = await coreFetch(
+          "POST",
+          "/v1/payment-demo/chat",
+          JSON.stringify({ threadRef, text, action: "start", sendKey: idempotencyKey ?? crypto.randomUUID() }),
+        );
+        if (payment.status >= 400) return relay(res, payment);
+        const parsed = JSON.parse(payment.text) as { handled?: boolean };
+        if (parsed.handled) return relay(res, payment);
+      }
       const turn = {
         ...webTurnBase(req, user, resolved.conversation, threadRef, text),
         ...(harness ? { harness } : {}),

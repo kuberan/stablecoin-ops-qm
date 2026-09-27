@@ -4,7 +4,7 @@ QM Web is the primary demo. Slack remains an optional connected surface. Never c
 
 ## Implemented investigation and pricing review
 
-Open `/payment-cases` in the QM web surface. Start an investigation. Separate QM sessions represent Sender PSP and Receiver PSP. Each has a distinct, case-run-specific principal and personal scope. The case broker supplies only that institution's fictional records plus previously published evidence. Model-generated information requests queue subsequent QM turns. Findings cite predefined evidence IDs, which are checked against that institution’s own records and evidence already published to the case. Numeric reconciliation is calculated from the published records, not copied from model prose.
+Report the 500,000 / 487,000 USDC discrepancy in QM’s existing personal chat, or send `/payment investigate PAY-1042`. The same conversation shows attributed contributions and source evidence from both agents. `/payment status` resumes after leaving; `/payment retry` performs bounded recovery. The separate `/payment-cases` page is a debug view with optional fixture intake and replay controls. Reports are persisted as unverified claims and validated against the supported fictional PAY-1042 amounts; they do not populate the evidence reconciliation. Two agent cards expose distinct session IDs, execution state, run counts and activity filters. Separate QM sessions represent Sender PSP and Receiver PSP. Each has a distinct, case-run-specific principal and personal scope. The case broker supplies only that institution's fictional records plus previously published evidence. Model-generated information requests queue subsequent QM turns. Findings cite predefined evidence IDs, which are checked against that institution’s own records and evidence already published to the case. Numeric reconciliation is calculated from the published records, not copied from model prose.
 
 PAY-1042: Acme Manufacturing instructs 500,000 USDC for INV-8821, charges OUR, no FX. Sender settlement is finalized. Receiver has 500,000 received, 487,000 credited, and a 13,000 adjustment referencing PA-218. After discrepancy discovery, Receiver reviews fictional PA-218 terms: 260 basis points explains 13,000 USDC, but OUR charges must be billed separately absent a jointly approved payment-specific exception. A supplied packet search found no approval; it is explicitly non-exhaustive. Sender then challenges the deduction using its instruction and the published terms. Receiver produces an evidence-cited recommendation for human review. These three stages are required workflow steps; the agents generate the assessments, not the coordinator.
 
@@ -14,20 +14,23 @@ This is a single-organization local simulation, not federated institutional auth
 
 Records are fictional fixtures in `src/payment-cases/demo.ts`. This is evidence analysis with controlled publication, not a general-purpose disclosure filter. Do not seed real financial/customer data. No transfers, contract determinations, or ledger changes are performed.
 
-Case state, queued task identifiers, and published evidence live in Postgres through QM's durable-map store. Stable turn idempotency keys cover retry after a queue/save interruption. The browser advances the case with authenticated requests; keep the page open while demonstrating it. Returning to the page resumes unfinished work. Each new case is limited to six discovery tasks plus three review stages, each with a two-minute turn deadline and at most two explicit retries for invalid model replies. A fresh investigation archives the preceding case and uses new agent identities.
+Case state, queued task identifiers, and published evidence live in Postgres through QM's durable-map store. Stable turn idempotency keys cover retry after a queue/save interruption. The browser advances the case with authenticated requests; keep the page open while demonstrating it. Returning to the debug page resumes unfinished work; in native chat, send `/payment status` to resume. Stopping the display does not cancel an already queued run. Each new case is limited to six discovery tasks plus three review stages, each with a two-minute turn deadline and at most two explicit retries for invalid model replies. A fresh investigation archives the preceding case and uses new agent identities.
 
 ## Code map
 
 - `src/payment-cases/demo.ts`: fixtures, separate principals, prompts, response validation, durable case coordinator.
+- `src/payment-cases/chat.ts`: personal-chat ownership checks and deduplicated persistence of user reports and attributed published messages.
+- `plugins/web-ui/src/core-bridge.ts`: native chat streaming and case advancement.
 - `src/api/routes/payment-cases.ts`: authenticated case routes and institutional session preparation.
-- `plugins/web-ui/public/payment-case.*`: case screen, safe text rendering, evidence detail and polling.
+- `plugins/web-ui/public/payment-case.*`: debug screen, safe text rendering, evidence detail and polling.
 - `plugins/web-ui/server/index.ts`: same-origin web proxy and page route.
-- `plugins/web-ui/src/shell.ts`: Cases link.
+- `plugins/web-ui/src/shell.ts`: Debug link.
+- `test/payment-chat.test.ts`: intent detection, chat ownership, persisted attribution and duplicate-send protection.
 - `test/payment-cases.test.ts`: boundaries, request-driven flow, replay, citations, failure behavior and retry keys.
 
 ## Validation
 
-A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Thirteen focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
+A real OpenRouter/Pi investigation completed inside native QM chat, including refresh/resume, with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Sixteen focused core tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
 
 The OpenRouter dev-launcher adjustment is included in this source fork. The submission README distinguishes our extension from the original QM project.
 
