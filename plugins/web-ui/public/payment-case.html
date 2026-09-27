@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PAY-1042 · QM Payment Ops</title>
+    <link rel="stylesheet" href="/payment-case.css" />
+    <script type="module" src="/payment-case.js"></script>
+  </head>
+  <body>
+    <header>
+      <a href="/">QM <span>/ Stablecoin Ops</span></a
+      ><span class="demo">FICTIONAL DEMO</span>
+    </header>
+    <main>
+      <div class="eyebrow">PAYMENT CASE / 001</div>
+      <div class="heading">
+        <div>
+          <h1>Where did the $13,000 go?</h1>
+          <p class="subtitle">PAY-1042 · USDC settlement investigation</p>
+        </div>
+        <span id="status" class="status">Ready to investigate</span>
+      </div>
+      <section class="intro">
+        <p>
+          Sender reports a successful payment. The supplier reports a shortfall. Ask two institutional agents to
+          reconcile their records and share the evidence.
+        </p>
+        <button id="start">Investigate PAY-1042 <span>↗</span></button>
+      </section>
+      <div id="error" role="alert" hidden></div>
+      <section class="metrics" aria-label="Published reconciliation">
+        <article>
+          <span>TRANSMITTED</span><strong id="transmitted">—</strong><small>Sender’s published evidence</small>
+        </article>
+        <article>
+          <span>RECEIVED</span><strong id="received">—</strong><small>Receiver’s published evidence</small>
+        </article>
+        <article><span>CREDITED</span><strong id="credited">—</strong><small>Beneficiary ledger</small></article>
+        <article class="difference">
+          <span>DIFFERENCE</span><strong id="difference">—</strong><small id="adjustment">Awaiting evidence</small>
+        </article>
+      </section>
+      <div class="columns">
+        <section>
+          <div class="section-title">
+            <h2>Case timeline</h2>
+            <span>SHARED FINDINGS</span>
+          </div>
+          <div id="timeline" aria-live="polite">
+            <div class="empty">
+              The case starts with a question, not a conclusion.<br />Published findings and information requests will
+              appear here.
+            </div>
+          </div>
+        </section>
+        <aside>
+          <div class="section-title">
+            <h2>Participants</h2>
+            <span>2 AGENTS</span>
+          </div>
+          <div class="agent">
+            <div class="avatar">S</div>
+            <div>
+              <strong>Sender PSP</strong>
+              <p>Instruction & settlement records</p>
+              <small id="sender-state">Not started</small>
+            </div>
+          </div>
+          <div class="agent">
+            <div class="avatar receiver">R</div>
+            <div>
+              <strong>Receiver PSP</strong>
+              <p>Receipt & beneficiary ledger</p>
+              <small id="receiver-state">Not started</small>
+            </div>
+          </div>
+          <div class="boundary">
+            <h3>Private work. Shared evidence.</h3>
+            <p>
+              Each agent runs in a separate QM personal scope. The case receives only the findings and evidence the
+              agent publishes.
+            </p>
+            <p>
+              This demo runs within one local QM organization. It is not a production connection between institutions.
+            </p>
+          </div>
+          <div class="boundary">
+            <h3>Human review stays in control</h3>
+            <p>Agents investigate fictional records. No transfers, ledger edits, or fee reversals are performed.</p>
+            <p>Keep this page open to advance the case. Saved progress resumes when you return.</p>
+          </div>
+          <a class="back" href="/">← Back to QM chat</a>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>

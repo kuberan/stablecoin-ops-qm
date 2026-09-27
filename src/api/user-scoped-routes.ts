@@ -9,6 +9,8 @@ function pat(method: string, template: string, field?: Field): Rule {
 }
 
 const USER_SCOPED: Rule[] = [
+  pat("GET", "/v1/payment-demo"),
+  pat("POST", "/v1/payment-demo/:action"),
   pat("POST", "/v1/composio/complete-auth"),
   pat("POST", "/v1/composio/authorize"),
   pat("POST", "/v1/composio/execute"),

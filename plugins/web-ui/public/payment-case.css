@@ -1,0 +1,361 @@
+:root {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #222c2a;
+  background: #f6f7f3;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header {
+  height: 76px;
+  border-bottom: 1px solid #dfe4dc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5vw;
+  background: #fff;
+}
+header a {
+  font-size: 23px;
+  font-weight: 750;
+  text-decoration: none;
+  color: inherit;
+  letter-spacing: -1px;
+}
+header a span {
+  font-size: 14px;
+  font-weight: 450;
+  letter-spacing: 0;
+  color: #69736c;
+  margin-left: 18px;
+}
+.demo,
+.eyebrow,
+.section-title > span {
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  font-weight: 650;
+}
+.demo {
+  padding: 8px 11px;
+  border: 1px solid #dfe4dc;
+  border-radius: 5px;
+  color: #607064;
+}
+main {
+  max-width: 1260px;
+  margin: 48px auto;
+  padding: 0 34px;
+}
+.eyebrow {
+  color: #708073;
+  margin-bottom: 17px;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+h1 {
+  font-size: clamp(28px, 3.5vw, 43px);
+  letter-spacing: -1.7px;
+  font-weight: 550;
+  margin: 0 0 10px;
+}
+p {
+  line-height: 1.6;
+}
+.subtitle {
+  font-size: 14px;
+  color: #6a766e;
+  margin: 0;
+}
+.status {
+  border: 1px solid #d3ded4;
+  padding: 9px 13px;
+  font-size: 12px;
+  border-radius: 25px;
+  background: #eaf0e7;
+  white-space: nowrap;
+}
+.intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin: 26px 0 30px;
+}
+.intro p {
+  max-width: 690px;
+  font-size: 14px;
+  color: #627068;
+}
+button {
+  border: 0;
+  border-radius: 7px;
+  padding: 15px 20px;
+  background: #214d3b;
+  color: #fff;
+  cursor: pointer;
+  font: 600 13px inherit;
+  white-space: nowrap;
+}
+button span {
+  margin-left: 20px;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #7bb89a;
+  outline-offset: 3px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid #dce2d9;
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+  margin-bottom: 42px;
+}
+.metrics article {
+  padding: 24px;
+  border-right: 1px solid #e5e9e2;
+}
+.metrics article:last-child {
+  border: 0;
+  background: #f0eee2;
+}
+.metrics span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #728074;
+}
+.metrics strong {
+  display: block;
+  font-size: 29px;
+  font-weight: 550;
+  letter-spacing: -1px;
+  margin: 11px 0;
+}
+.metrics small {
+  font-size: 11px;
+  color: #7a847b;
+}
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 44px;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #dbe2d7;
+  padding-bottom: 17px;
+  margin-bottom: 20px;
+}
+.section-title h2 {
+  font-size: 17px;
+  font-weight: 550;
+  margin: 0;
+}
+.section-title > span {
+  font-size: 9px;
+  color: #8a958a;
+}
+.empty {
+  border: 1px dashed #cfd9cc;
+  border-radius: 10px;
+  padding: 45px 25px;
+  text-align: center;
+  color: #859181;
+  line-height: 1.8;
+  font-size: 14px;
+}
+.agent {
+  display: flex;
+  gap: 13px;
+  margin: 25px 0;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: #e3ecde;
+  border-radius: 9px;
+  color: #405c39;
+  font-size: 13px;
+  font-weight: 700;
+}
+.receiver {
+  background: #e3e9ee;
+  color: #416278;
+}
+.agent strong {
+  font-size: 13px;
+}
+.agent p {
+  font-size: 11px;
+  margin: 5px 0;
+  color: #778374;
+}
+.agent small {
+  font-size: 10px;
+  color: #52724e;
+}
+.boundary {
+  margin-top: 29px;
+  border-top: 1px solid #dce3d9;
+  padding-top: 15px;
+}
+.boundary h3 {
+  font-size: 12px;
+  font-weight: 650;
+}
+.boundary p {
+  font-size: 12px;
+  color: #778173;
+}
+.back {
+  display: block;
+  margin: 28px 0;
+  color: #41684c;
+  text-decoration: none;
+  font-size: 12px;
+}
+.event {
+  background: #fff;
+  border: 1px solid #dce3d8;
+  border-radius: 9px;
+  padding: 20px 23px;
+  margin-bottom: 14px;
+}
+.event-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #647361;
+  font-size: 11px;
+}
+.event-top strong {
+  color: #28372b;
+  font-size: 12px;
+}
+.event p {
+  font-size: 14px;
+  margin: 13px 0;
+}
+.event time {
+  margin-left: auto;
+  font-size: 10px;
+}
+.request {
+  background: #eff3ec;
+}
+.evidence {
+  font-size: 12px;
+  padding: 11px 0 0;
+  border-top: 1px solid #eef0ea;
+  margin-top: 12px;
+}
+.evidence summary {
+  cursor: pointer;
+  color: #486643;
+}
+.evidence dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 15px 0;
+  color: #53614e;
+}
+.evidence dt {
+  overflow-wrap: anywhere;
+}
+.evidence dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.provenance {
+  display: block;
+  color: #95a08f;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+  margin-top: 15px;
+}
+.review {
+  border-left: 3px solid #c2a54f;
+  padding: 18px 22px;
+  background: #f4f0df;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+#error {
+  background: #fff0eb;
+  color: #903d29;
+  border: 1px solid #e3c0b4;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 22px;
+  font-size: 13px;
+}
+@media (max-width: 850px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .metrics article:nth-child(2) {
+    border-right: 0;
+  }
+  .metrics article:nth-child(-n + 2) {
+    border-bottom: 1px solid #e5e9e2;
+  }
+  .heading,
+  .intro {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  main {
+    margin: 30px auto;
+    padding: 0 20px;
+  }
+  .intro {
+    gap: 10px;
+  }
+  .metrics strong {
+    font-size: 25px;
+  }
+  .columns {
+    gap: 22px;
+  }
+  header a span {
+    margin-left: 8px;
+  }
+  .demo {
+    font-size: 8px;
+  }
+  h1 {
+    letter-spacing: -1px;
+  }
+}

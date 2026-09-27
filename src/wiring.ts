@@ -1,3 +1,4 @@
+import type { PaymentCase } from "./payment-cases/demo.ts";
 import { availableRuntimeError } from "./api/runtime-config.ts";
 import { createApprovalStore } from "./core/approval-store.ts";
 import { createKeychainApprovals } from "./credentials/keychain-approval.ts";
@@ -482,6 +483,7 @@ export interface BuiltApp {
   runtime: Runtime;
   config: ScopedConfigStore;
   connectorTokens: ConnectorTokenStore;
+  paymentCases: DurableMap<PaymentCase>;
   slackInstallation: SlackInstallationStore;
   resolveClient: OAuthClientResolver;
   consentLinks: ConsentLinkStore;
@@ -2753,6 +2755,7 @@ export function buildApp(
     runtime,
     config: configStore,
     connectorTokens,
+    paymentCases: artifactMap<PaymentCase>("payment_demo_cases"),
     slackInstallation,
     resolveClient,
     consentLinks,
@@ -2882,6 +2885,7 @@ export function serverDeps(
     ...(carriedModelAuth ? { harnessCarriedModelAuth: carriedModelAuth } : {}),
     harnessId: config.harness,
     connectorTokens: built.connectorTokens,
+    paymentCases: built.paymentCases,
     slackInstallation: built.slackInstallation,
     slackEnvironmentState,
     ...(config.slackEventsPort ? { slackEventsPort: config.slackEventsPort } : {}),

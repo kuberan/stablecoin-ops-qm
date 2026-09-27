@@ -1092,6 +1092,17 @@ async function serveFileContent(c: WebCtx, playground = false): Promise<unknown>
 }
 
 const apiRoutes: readonly WebRoute[] = [
+  { method: "GET", path: "/api/payment-demo", handle: async ({ res }) => relayCore(res, "GET", "/v1/payment-demo") },
+  {
+    method: "POST",
+    path: "/api/payment-demo/:action",
+    handle: async ({ res, params }) => {
+      if (params.action !== "start" && params.action !== "advance" && params.action !== "replay")
+        return json(res, 404, { error: "Not found" });
+      return relayCore(res, "POST", `/v1/payment-demo/${params.action}`, "{}");
+    },
+  },
+
   {
     method: "GET",
     path: "/api/files/by-name/content",
@@ -3257,6 +3268,11 @@ const routeRequest = async (req: IncomingMessage, res: ServerResponse) => {
       "x-content-type-options": "nosniff",
     });
     return res.end(Buffer.from(await up.arrayBuffer()));
+  }
+
+  if (method === "GET" && path === "/payment-cases") {
+    if (!cookieUser(req)) return unauthorized(res, req);
+    return sendHtml(res, 200, readFileSync(join(ROOT, "public/payment-case.html"), "utf8"));
   }
 
   if (method === "GET" && path === "/app-edit" && (await serveAppEditHtml(req, res, url))) return;

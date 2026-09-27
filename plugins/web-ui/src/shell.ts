@@ -586,6 +586,7 @@ export function renderSidebarFooter(): void {
             </a>`
           : nothing
       }
+      <a class="icon-btn subtle" href="/payment-cases" aria-label="Payment cases" title="Payment cases">Cases</a>
       <button class="icon-btn subtle" aria-label="Settings" ${tip("Settings")} @click=${() => switchView("settings")}>
         ${icon(Settings, 17)}
       </button>
