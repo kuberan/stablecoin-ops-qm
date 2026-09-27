@@ -1,6 +1,6 @@
 # Stablecoin Ops: PAY-1042
 
-QM Web is the primary demo. Slack remains an optional connected surface. Build and test locally; do not publish or push until the user asks. Never commit credentials, private workspace identifiers, local runtime state, or screenshots.
+QM Web is the primary demo. Slack remains an optional connected surface. Never commit credentials, private workspace identifiers, local runtime state, or screenshots.
 
 ## Implemented investigation and pricing review
 
@@ -29,7 +29,7 @@ Case state, queued task identifiers, and published evidence live in Postgres thr
 
 A real OpenRouter/Pi investigation completed with Sender findings, Sender-to-Receiver questions, Receiver findings, and PA-218 evidence. Separate sessions and personal scopes were observed. Authenticated API checks returned 200 for each institution's own transcript and 404 for the other institution's transcript; the human-only case endpoint returned 403 to an institutional agent identity. Thirteen focused tests pass, including published-source references and recovery of a pending result. Core and web type checks, changed-file lint, and the web production build are part of the acceptance checks.
 
-The existing OpenRouter dev-launcher adjustment is also local source work. No GitHub fork or remote submission has been created yet.
+The OpenRouter dev-launcher adjustment is included in this source fork. The submission README distinguishes our extension from the original QM project.
 
 ## Later work
 

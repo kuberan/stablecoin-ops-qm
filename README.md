@@ -1,3 +1,61 @@
+# Stablecoin Ops · QM hackathon extension
+
+Investigate a fictional 500,000 USDC payment that arrives as a 487,000 USDC beneficiary credit. Separate Sender and Receiver agents reconcile their records, exchange evidence, review pricing agreement PA-218, and prepare a recommendation for human review.
+
+Built for the **Own Your Intelligence Hackathon — QM side quest**. This source fork extends [YC’s QM](https://github.com/yc-software/qm); upstream code and licensing are retained below.
+
+## What we added to QM
+
+- Separate institution identities and personal sessions, using QM’s existing access controls.
+- A durable case coordinator that routes agent-generated questions and publishes cited evidence.
+- A required pricing assessment, Sender challenge, and final recommendation workflow.
+- An authenticated Cases screen with source details, run provenance, replay, and bounded recovery of invalid model responses.
+- OpenRouter support in the local development launcher.
+
+The model generates the dialogue and assessments. The coordinator validates available source IDs, records provenance, enforces review stages, and calculates reconciliation totals from published fixtures.
+
+## Demo
+
+Open **Cases** in the QM web sidebar, then **Investigate PAY-1042** (or **Run a fresh investigation**). Keep the page open while agents work.
+
+1. Sender establishes that 500,000 USDC was instructed and transmitted.
+2. Receiver publishes 500,000 received, 487,000 credited, and adjustment PA-218.
+3. Receiver shares fictional pricing terms: 2.6% explains 13,000, but OUR charges require separate billing unless both institutions approve an exception.
+4. Sender challenges the deduction. The supplied packet contains no approval, but that is not proof none exists elsewhere.
+5. Receiver recommends verifying approval evidence and seeking human approval for any correction. No funds move.
+
+All financial data and agreement terms are **fictional**. This is a single-organization simulation, not production cross-company federation. Citation checks do not guarantee every sentence is correct; conclusions remain advisory. Real ledger integrations, contract retrieval and automated financial actions are outside this demo.
+
+## Run locally
+
+Requirements: Node.js 24.15+ and npm 11.10+ (see `package.json`), Docker running with access from your shell, and a model API key. Use a short checkout path if your system limits Unix socket path length.
+
+```bash
+npm ci
+npm run sandbox:local:build
+export MODEL_PROVIDER=openrouter
+export HARNESS=pi
+export PI_MODEL=openrouter/auto
+read -rs -p 'OpenRouter API key: ' OPENROUTER_API_KEY
+export OPENROUTER_API_KEY
+npm run dev-instance:web
+```
+
+The development launcher prepares the local services and prints the portal URL. Sign in through that portal and open `/payment-cases`. Model calls consume your provider credits. Slack is optional and is not required for the web demonstration. See the [development instance guide](.codex/skills/dev-instance/SKILL.md) for setup and diagnostics.
+
+## Validation and implementation
+
+```bash
+node --experimental-test-module-mocks --test test/payment-cases.test.ts test/dev-cli-lib.test.ts
+npm run typecheck
+```
+
+The payment-case suite has 13 tests. Live verification covered real OpenRouter/Pi turns, pricing review, challenge, recommendation, persistence, and authenticated transcript access: each institution could read its own session while cross-institution reads were denied. Web production build and changed-code lint also passed.
+
+Read [HACKATHON.md](HACKATHON.md) for architecture, source-file map, limits, and remaining work. The required demo-video link will be supplied with the hackathon submission separately.
+
+---
+
 # qm
 
 A multiplayer agent harness for work. In Slack and on the web.
