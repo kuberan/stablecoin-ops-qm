@@ -422,8 +422,38 @@ test("env assembly precedence: caller > login shell > dev.env > worktree .env; h
   writeFileSync(join(worktree, ".env"), "");
   await assert.rejects(
     assembleEnv({ worktree, callerEnv: {}, allowMock: false, log, probeLoginShell: async () => "" }),
-    /ANTHROPIC_API_KEY is required/,
+    /ANTHROPIC_API_KEY or OPENROUTER_API_KEY is required/,
   );
+  for (const source of ["caller", "live", "dotenv"] as const) {
+    writeFileSync(liveEnv, source === "live" ? "OPENROUTER_API_KEY=router-test\n" : "");
+    writeFileSync(join(worktree, ".env"), source === "dotenv" ? "OPENROUTER_API_KEY=router-test\n" : "");
+    const router = await assembleEnv({
+      worktree,
+      callerEnv: source === "caller" ? { OPENROUTER_API_KEY: "router-test" } : {},
+      allowMock: false,
+      log,
+      probeLoginShell: async () => "",
+    });
+    assert.equal(router.harness, "pi");
+    assert.equal(router.env.MODEL_PROVIDER, "openrouter");
+    assert.equal(router.env.PI_MODEL, "openrouter/auto");
+    assert.equal(router.env.OPENROUTER_API_KEY, "router-test");
+    assert.equal(
+      router.openrouterKeySource,
+      { caller: "your shell export", live: liveEnv, dotenv: "the worktree .env" }[source],
+    );
+  }
+  await assert.rejects(
+    assembleEnv({
+      worktree,
+      callerEnv: { HARNESS: "opencode" },
+      allowMock: false,
+      log,
+      probeLoginShell: async () => "",
+    }),
+    /OpenRouter requires HARNESS=pi/,
+  );
+  writeFileSync(join(worktree, ".env"), "");
   const mock = await assembleEnv({ worktree, callerEnv: {}, allowMock: true, log, probeLoginShell: async () => "" });
   assert.equal(mock.harness, "mock");
   if (prevLive === undefined) delete process.env.QM_DEV_ENV;

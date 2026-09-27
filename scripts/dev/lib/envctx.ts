@@ -10,6 +10,7 @@ export interface AssembledEnv {
   env: Record<string, string>;
   anthropicKeySource: string;
   openaiKeySource: string;
+  openrouterKeySource: string;
   codexAuthSource: string;
   harness: "pi" | "mock" | "opencode" | "codex" | "claude";
   liveEnvFile: string;
@@ -127,6 +128,14 @@ export async function assembleEnv(opts: {
     openaiKeySource = "the worktree .env";
   }
 
+  let openrouterKeySource = "";
+  if (opts.callerEnv.OPENROUTER_API_KEY) openrouterKeySource = "your shell export";
+  else if (env.OPENROUTER_API_KEY) openrouterKeySource = liveEnvFile;
+  if (!env.OPENROUTER_API_KEY && wtEnv.OPENROUTER_API_KEY) {
+    env.OPENROUTER_API_KEY = wtEnv.OPENROUTER_API_KEY;
+    openrouterKeySource = "the worktree .env";
+  }
+
   if (!env.CODEX_AUTH_FILE && wtEnv.CODEX_AUTH_FILE) env.CODEX_AUTH_FILE = wtEnv.CODEX_AUTH_FILE;
   let codexAuthSource = "";
   const codexAuthCandidate = codexAuthFileForEnv({ ...env, ...opts.callerEnv }, true);
@@ -145,6 +154,13 @@ export async function assembleEnv(opts: {
         "HARNESS=codex needs OPENAI_API_KEY or a readable ChatGPT OAuth auth.json via CODEX_AUTH_FILE (or ~/.codex/auth.json)",
       );
     }
+  } else if (env.OPENROUTER_API_KEY && (env.MODEL_PROVIDER === "openrouter" || !env.ANTHROPIC_API_KEY)) {
+    if (opts.callerEnv.HARNESS === "opencode") throw new Error("OpenRouter requires HARNESS=pi");
+    harness = "pi";
+    env.HARNESS = harness;
+    env.MODEL_PROVIDER = "openrouter";
+    env.PI_MODEL ||= "openrouter/auto";
+    if (!env.PI_CAPTURE_REQUESTS) env.PI_CAPTURE_REQUESTS = "1";
   } else if (env.ANTHROPIC_API_KEY) {
     harness = opts.callerEnv.HARNESS === "opencode" ? "opencode" : "pi";
     env.HARNESS = harness;
@@ -152,10 +168,10 @@ export async function assembleEnv(opts: {
   } else if (opts.allowMock) {
     harness = "mock";
     env.HARNESS = "mock";
-    warnings.push("mock turns explicitly allowed by DEV_INSTANCE_ALLOW_MOCK=1 -- no anthropic key found");
+    warnings.push("mock turns explicitly allowed by DEV_INSTANCE_ALLOW_MOCK=1 -- no supported model key found");
   } else {
     throw new Error(
-      `ANTHROPIC_API_KEY is required: dev instances exercise real LLM calls by default. Export a key, add one to ${liveEnvFile}, or set DEV_INSTANCE_ALLOW_MOCK=1 for a deliberate mock-only wiring check.`,
+      `ANTHROPIC_API_KEY or OPENROUTER_API_KEY is required: dev instances exercise real LLM calls by default. Export a key, add one to ${liveEnvFile}, or set DEV_INSTANCE_ALLOW_MOCK=1 for a deliberate mock-only wiring check.`,
     );
   }
 
@@ -166,7 +182,16 @@ export async function assembleEnv(opts: {
     if (!env[k] && wtEnv[k]) env[k] = wtEnv[k];
   }
 
-  return { env, anthropicKeySource, openaiKeySource, codexAuthSource, harness, liveEnvFile, warnings };
+  return {
+    env,
+    anthropicKeySource,
+    openaiKeySource,
+    openrouterKeySource,
+    codexAuthSource,
+    harness,
+    liveEnvFile,
+    warnings,
+  };
 }
 
 export function envFileGet(path: string, key: string): string {

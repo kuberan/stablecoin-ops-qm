@@ -317,7 +317,9 @@ async function assembleAndPrepare(spec: BootSpec): Promise<SpecInputs> {
   for (const w of assembled.warnings) phase("env", "warn", w);
   harness = assembled.harness;
   let harnessDetail = `live ${assembled.harness} turns (anthropic key from ${assembled.anthropicKeySource})`;
-  if (assembled.harness === "mock") harnessDetail = "mock turns";
+  if (assembled.harness === "pi" && assembled.env.MODEL_PROVIDER === "openrouter")
+    harnessDetail = `live pi turns (openrouter key from ${assembled.openrouterKeySource})`;
+  else if (assembled.harness === "mock") harnessDetail = "mock turns";
   else if (assembled.harness === "codex") {
     harnessDetail = assembled.codexAuthSource
       ? "live codex turns (ChatGPT OAuth auth.json)"
